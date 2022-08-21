@@ -34,12 +34,12 @@
     </style>
   </head>
   <body>
-    <h1>Habitter</h1>
-    <p>A simple habit tracker. Add your habits below and how often you'd like to do them, then mark them as done before their health meter depletes.</p>
+    <h1>habitter</h1>
+    <p>A simple habit tracker. Add your habits and how frequently you'd like to do them, then the green health bar will get smaller until it's time to do the habit and reset the timer.</p>
     <form id="habit_form" onsubmit="addHabitSubmit(event)">
       <div>
         <label for="habit_name">name:</label>
-        <input type="text" value="" placeholder="habit name" name="habit_name" id="habit_name" required="required" />
+        <input type="text" value="" placeholder="ex: Take a walk" name="habit_name" id="habit_name" required="required" />
       </div>
       <div>
         <label for="habit_frequency">frequency (days):</label>
@@ -50,7 +50,7 @@
     <div id="habits"></div>
     <script>
       if (!localStorage.getItem('habits')) {
-        localStorage.setItem('habits', JSON.stringify([]))
+        localStorage.setItem('habits', JSON.stringify([{name: 'example daily habit', frequency: 2, lastDone: Date.now()}, {name: 'example 2 minute habit', frequency: .00138889, lastDone: Date.now()}]))
       }
       JSON.parse(localStorage.getItem('habits')).forEach((habit) => addHabit(habit.name, habit.frequency, habit.lastDone))
       function sync() {
@@ -69,7 +69,7 @@
         habit.innerHTML = `<h2>${name}</h2>
 <div class="progress"></div>
 <button onclick="this.parentElement.remove()">remove</button>
-<button onclick="this.parentElement.dataset.lastDone = Date.now();render()">done</button>`
+<button onclick="this.parentElement.dataset.lastDone = Date.now();render()">reset</button>`
         habits.appendChild(habit)
       }
       function addHabitSubmit (event) {
