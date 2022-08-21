@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>habitter - simple habit tracking using timers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A simple habit tracker using timers">
+    <style>
+      #habits,
+      form {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .habit > *,
+      form > *,
+      .habit,
+      form {
+        margin: 0;
+        margin-bottom: 5px;
+        margin-right: 5px;
+      }
+      .progress {
+        position: relative;
+        width: 100px;
+        height: 10px;
+        background-color: red;
+      }
+      .progress::after {
+        content: '';
+        position: absolute;
+        background-color: green;
+        width: var(--progress);
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Habitter</h1>
+    <p>A simple habit tracker. Add your habits below and how often you'd like to do them, then mark them as done before their health meter depletes.</p>
+    <form id="habit_form" onsubmit="addHabitSubmit(event)">
+      <div>
+        <label for="habit_name">name:</label>
+        <input type="text" value="" placeholder="habit name" name="habit_name" id="habit_name" required="required" />
+      </div>
+      <div>
+        <label for="habit_frequency">frequency (days):</label>
+        <input type="number" min="0" value="1" step="any" name="habit_frequency" id="habit_frequency" required="required" />
+      </div>
+      <input type="submit" value="add habit">
+    </form>
+    <div id="habits"></div>
+    <script>
+      if (!localStorage.getItem('habits')) {
+        localStorage.setItem('habits', JSON.stringify([]))
+      }
+      JSON.parse(localStorage.getItem('habits')).forEach((habit) => addHabit(habit.name, habit.frequency, habit.lastDone))
+      function sync() {
+        const newHabits = []
+        for (var i = 0; i < habits.children.length; i++) {
+          newHabits.push(Object.assign({}, habits.children[i].dataset))
+        }
+        localStorage.setItem('habits', JSON.stringify(newHabits))
+      }
+      function addHabit (name, frequency, lastDone) {
+        const habit = document.createElement('section')
+        habit.dataset.name = name
+        habit.dataset.lastDone = lastDone
+        habit.dataset.frequency = frequency
+        habit.classList.add('habit')
+        habit.innerHTML = `<h2>${name}</h2>
+<div class="progress"></div>
+<button onclick="this.parentElement.remove()">remove</button>
+<button onclick="this.parentElement.dataset.lastDone = Date.now();render()">done</button>`
+        habits.appendChild(habit)
+      }
+      function addHabitSubmit (event) {
+        event.preventDefault()
+        addHabit(habit_name.value, parseFloat(habit_frequency.value), Date.now())
+        habit_name.value = ''
+        habit_frequency.value = 1
+        render()
+      }
+      function render() {
+        for (var i = 0; i < habits.children.length; i++) {
+          const habit = habits.children[i]
+          const daysSince = (Date.now() - habit.dataset.lastDone) / (1000 * 60 * 60 * 24)
+          const diff = habit.dataset.frequency - daysSince
+          let progress = diff / habit.dataset.frequency
+          progress = progress > 0 ? progress : 0
+          habit.style.setProperty('--progress', `${progress*100}%`)
+          habit.querySelector('.progress').title = `Days left: ${parseFloat(diff).toFixed(4)}`
+        }
+      }
+      setInterval(() => {
+        render()
+        sync()
+      }, 1000)
+      render()
+    </script>
+  </body>
+</html>
